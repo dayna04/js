@@ -19,7 +19,7 @@
   <image source="winter/christmas.png" width="1000" height="1000"/>
  </tileset>
  <tileset firstgid="3392" name="pipoya" tilewidth="32" tileheight="32" margin="1" tilecount="924" columns="7">
-  <image source="pipoya.png" width="256" height="4256"/>
+  <image source="../../animation/assets/Tiled-cityMap/assets/pipoya.png" width="256" height="4256"/>
  </tileset>
  <layer id="1" name="groundLayer" width="30" height="32">
   <data encoding="base64">

@@ -13,18 +13,21 @@ class toyforestScene extends Phaser.Scene {
     this.inventory = data.inventory;
   }
 
+
   preload() {
 
     // this is the exported JSON map file
     this.load.tilemapTiledJSON("toyforestScene", "assets/toyforest.tmj");
 
     this.load.audio("pop","assets/pop.mp3");
+    this.load.audio("gameover","assets/gameover.mp3");
     
     this.load.image("christmasImg", "assets/winter/christmas.png");
     this.load.image("snowImg", "assets/winter/snow.png");
     this.load.image("winterImg", "assets/winter/winter.png");
     this.load.image("winter2Img", "assets/winter/winter2.png");
     this.load.image("xmasImg", "assets/winter/xmas.png");
+    this.load.image("signImg", "assets/signboard.png");
     this.load.spritesheet("santaImg", "assets/santa.png",{frameWidth:64, frameHeight:64 });
     this.load.spritesheet("bbearImg", "assets/item.png", {
       frameWidth: 32,
@@ -70,7 +73,41 @@ class toyforestScene extends Phaser.Scene {
 
   create() {
     console.log("toyforestScene.js loaded");
-    
+
+    // --- VISUAL TIMER SETUP ---
+this.timeLeft = 80; // 3 minutes in seconds
+
+// Timer text
+this.timerText = this.add.text(85, 70, `Time: ${this.timeLeft}`, {
+  fontFamily: "christmaspix",
+  fontSize: "25px",
+  fill: "#fff9e6",
+  stroke: "#352f0a",
+  strokeThickness: 4
+}).setScrollFactor(0); // so it stays on the screen
+
+this.timerText.setDepth(999);
+
+
+    // Countdown event (every 1 sec)
+this.time.addEvent({
+  delay: 1000,
+  callback: this.updateTimer,
+  callbackScope: this,
+  loop: true,
+});
+
+// Display toys collected
+window.toysCollected = window.toysCollected || 0;
+this.toyText = this.add.text(630, 70, `Toys: ${window.toysCollected || 0}/10`, {
+  fontFamily: "christmaspix",
+  fontSize: "25px",
+  fill: "#fff9e6",
+  stroke: "#352f0a",
+  strokeThickness: 4
+}).setScrollFactor(0);
+
+this.toyText.setDepth(999);
 
     this.collectKeySnd = this.sound.add("pop").setVolume(1);
     console.log("Sound loaded?", this.sound.get("pop"));
@@ -401,6 +438,10 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     .setDepth(100)   // Make sure it's above other elements
     .setVisible(false) // Hide it initially
 
+    this.add.image(160, 100, "signImg").setScale(0.5)
+    .setScrollFactor(0); 
+    
+
     // Add main player here with physics.add.sprite
 
     // Add time event / movement here
@@ -457,7 +498,7 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
 
     // Now handle dialog text display
     if (this.popUp1Area.contains(this.player.x, this.player.y + 10)) {
-      this.dialogText.setText("Collect the toys!");
+      this.dialogText.setText("step 1: Collect the toys!");
       this.dialogText.setVisible(true);
     } 
 
@@ -466,6 +507,23 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
       this.dialogText.x = this.player.x;
       this.dialogText.y = this.player.y - 40; // 40 pixels above the player
   }}  /////////////////// end of update //////////////////////////////
+
+  endGame() {
+  console.log("Timer ended → switching to gameoverScene");
+  this.sound.play("gameover");
+  this.scene.start("gameoverScene");
+}
+updateTimer() {
+  this.timeLeft--;
+
+  // Update on-screen timer
+  this.timerText.setText(`Time: ${this.timeLeft}`);
+
+  // When time runs out
+  if (this.timeLeft <= 0) {
+    this.endGame();
+  }
+}
 
     handleToyCollision(player, toy) {
     const action = this.toyActions[toy.texture.key];
@@ -478,7 +536,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected wbear");
 
     window.wbear++;
+    window.toysCollected++;
     console.log("wbear", window.wbear);
+
+    this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitBbear(player, bbear) {
@@ -486,7 +552,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected bbear");
 
     window.bbear++;      
+    window.toysCollected++;
     console.log("bbear", window.bbear);
+
+    this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitYbus(player, ybus) {
@@ -494,7 +568,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected ybus");
 
     window.ybus++;
+    window.toysCollected++;
     console.log("ybus", window.ybus);
+
+    this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitRbus(player, rbus) {
@@ -502,7 +584,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected rbus");
 
     window.rbus++;
+    window.toysCollected++;
     console.log("rbus", window.rbus);
+
+    this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitWdoll(player, wdoll) {
@@ -510,7 +600,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected wdoll");
 
     window.wdoll++;
+    window.toysCollected++;
     console.log("wdoll", window.wdoll);
+
+     this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitBdoll(player, bdoll) {
@@ -518,7 +616,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected bdoll");
 
     window.bdoll++;
+    window.toysCollected++;
     console.log("bdoll", window.bdoll);
+
+     this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitBrobot(player, brobot) {
@@ -526,7 +632,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected brobot");
 
     window.brobot++;
+    window.toysCollected++;
     console.log("brobot", window.brobot);
+
+    this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitYrobot(player, yrobot) {
@@ -534,7 +648,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected yrobot");
 
     window.yrobot++;
+    window.toysCollected++;
     console.log("yrobot", window.yrobot);
+
+    this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitGdino(player, gdino) {
@@ -542,7 +664,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected gdino");
 
     window.gdino++;
+    window.toysCollected++;
     console.log("gdino", window.gdino);
+
+    this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   hitDgdino(player, dgdino) {
@@ -550,7 +680,15 @@ this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
     console.log("Player collected dgdino");
 
     window.dgdino++;
+    window.toysCollected++;
     console.log("dgdino", window.dgdino);
+
+    this.toyText.setText(`Toys: ${window.toysCollected}/10`);
+
+    if (window.toysCollected >= 10) {
+      console.log("All toys collected! Going to giftroomScene");
+        this.scene.start("giftroomScene", { player: player, inventory: this.inventory });
+    }
   }
 
   // Function to jump to room1

@@ -19,6 +19,8 @@ class giftroomScene extends Phaser.Scene {
     this.load.tilemapTiledJSON("giftroomScene", "assets/gift.tmj");
 
     this.load.audio("pop","assets/pop.mp3");
+    this.load.audio("win","assets/hohoho.mp3");
+    this.load.audio("gameover","assets/gameover.mp3");
 
     this.load.image("christmasImg", "assets/winter/christmas.png");
     this.load.image("snowImg", "assets/winter/snow.png");
@@ -26,6 +28,7 @@ class giftroomScene extends Phaser.Scene {
     this.load.image("winter2Img", "assets/winter/winter2.png");
     this.load.image("xmasImg", "assets/winter/xmas.png");
     this.load.image("pipoyaImg", "assets/pipoya.png");
+    this.load.image("signImg", "assets/signboard.png");
     this.load.spritesheet("santaImg", "assets/santa.png",{frameWidth:64, frameHeight:64 });
     this.load.spritesheet("giftImg", "assets/gift.png", {
       frameWidth: 32,
@@ -36,8 +39,45 @@ class giftroomScene extends Phaser.Scene {
   create() {
     console.log("giftroomScene");
 
+    // Display gifts collected
+this.giftText = this.add.text(630, 70, `Gifts: ${window.gift || 0}/10`, {
+  fontFamily: "christmaspix",
+  fontSize: "25px",
+  fill: "#fff9e6",
+  stroke: "#352f0a",
+  strokeThickness: 4
+}).setScrollFactor(0); // stays on screen
+
+this.giftText.setDepth(999);
+
+      // --- VISUAL TIMER SETUP ---
+this.timeLeft = 60; // 3 minutes in seconds
+
+// Timer text
+this.timerText = this.add.text(85, 70, `Time: ${this.timeLeft}`, {
+  fontFamily: "christmaspix",
+  fontSize: "25px",
+  fill: "#fff9e6",
+  stroke: "#352f0a",
+  strokeThickness: 4
+}).setScrollFactor(0); // so it stays on the screen
+
+this.timerText.setDepth(999);
+
+
+    // Countdown event (every 1 sec)
+this.time.addEvent({
+  delay: 1000,
+  callback: this.updateTimer,
+  callbackScope: this,
+  loop: true,
+});
+
+
     this.collectKeySnd = this.sound.add("pop").setVolume(1);
     console.log("Sound loaded?", this.sound.get("pop"));
+
+    this.win = this.sound.add("win").setVolume(1); // store reference
 
     let key1Down = this.input.keyboard.addKey(49);
     let key2Down = this.input.keyboard.addKey(50);
@@ -247,7 +287,7 @@ class giftroomScene extends Phaser.Scene {
       .play("gift1");
 
       this.gift2 = this.physics.add
-      .sprite(242,139, "giftImg")
+      .sprite(242,159, "giftImg")
       .setScale (1.5)
       .play("gift2");
 
@@ -282,7 +322,7 @@ class giftroomScene extends Phaser.Scene {
       .play("gift8");
 
       this.gift9 = this.physics.add
-      .sprite(64,96, "giftImg")
+      .sprite(464,96, "giftImg")
       .setScale (1.5)
       .play("gift9");
 
@@ -331,6 +371,9 @@ class giftroomScene extends Phaser.Scene {
     .setOrigin(0.5)  // Center the text
     .setDepth(100)   // Make sure it's above other elements
     .setVisible(false) // Hide it initially
+
+    this.add.image(160, 100, "signImg").setScale(0.5)
+    .setScrollFactor(0); 
 
 
 
@@ -396,7 +439,7 @@ update() {
   this.dialogText.setVisible(false);
 
   if (this.popUp1Area.contains(this.player.x, this.player.y + 10)) {
-    this.dialogText.setText("Collect the wrapped toys!");
+    this.dialogText.setText("Step 2: Collect the wrapped toys!");
     this.dialogText.setVisible(true);
   }
 
@@ -410,14 +453,43 @@ update() {
 
 
 // ----------- OUTSIDE UPDATE() -----------
+
+endGame() {
+  console.log("Timer ended → switching to gameoverScene");
+  this.sound.play("gameover");
+  this.scene.start("gameoverScene");
+}
+updateTimer() {
+  this.timeLeft--;
+
+  // Update on-screen timer
+  this.timerText.setText(`Time: ${this.timeLeft}`);
+
+  // When time runs out
+  if (this.timeLeft <= 0) {
+    this.endGame();
+  }
+}
 hitgift(player, gift) {
-  this.collectKeySnd.play();
-  console.log("Player collected gift");
+    this.collectKeySnd.play();
+    console.log("Player collected gift");
 
-  gift.disableBody(true, true);
+    gift.disableBody(true, true);
 
-  window.gift++;
-  console.log("gift", window.gift);
+    // Increment the global gift counter
+    window.gift = (window.gift || 0) + 1;
+    console.log("gift", window.gift);
+
+    // Update the on-screen text every time
+    this.giftText.setText(`Gifts: ${window.gift}/10`);
+
+
+    // Check if all 10 gifts are collected
+    if (window.gift >= 10) {
+        console.log("All gifts collected! Going to winScene");
+        this.win.play();
+        this.scene.start("winScene", { player: player, inventory: this.inventory });
+    }
 }
 
 

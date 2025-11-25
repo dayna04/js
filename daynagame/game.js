@@ -15,7 +15,7 @@
   },
   backgroundColor: "#bf0a0a",
   pixelArt: true,
-  scene: [main, preloadScene, introScene, toyforestScene, giftroomScene, gameoverScene, winScene, gameScene],
+  scene: [preloadScene, instructionScene, instruction2Scene, introScene, toyforestScene, giftroomScene, gameoverScene, winScene, gameScene],
 };
 window.gift = 0;
 var game = new Phaser.Game(config);

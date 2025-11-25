@@ -17,14 +17,13 @@ class introScene extends Phaser.Scene {
     // this is the exported JSON map file
     this.load.tilemapTiledJSON("introScene", "assets/xmas.tmj");
 
-    this.load.audio("sugarplum","assets/sugarplum.mp3");
 
     this.load.image("christmasImg", "assets/winter/christmas.png");
     this.load.image("snowImg", "assets/winter/snow.png");
     this.load.image("winterImg", "assets/winter/winter.png");
     this.load.image("winter2Img", "assets/winter/winter2.png");
     this.load.image("xmasImg", "assets/winter/xmas.png");
-    this.load.image("pipoyaImg", "assets/pipoya.png");
+    this.load.image("signImg", "assets/signboard.png");
     this.load.spritesheet("santaImg", "assets/santa.png", {
       frameWidth: 64,
       frameHeight: 64,
@@ -34,19 +33,26 @@ class introScene extends Phaser.Scene {
   create() {
     console.log("introScene");
 
+    this.add.text(290, 90, "Follow the path to the", {
+    fontFamily: "christmaspix",
+    fontSize: "20px",
+    color: "#fff3da",
+}).setScrollFactor(0) // stays fixed on screen
+.setDepth(100);   // Make sure it's above other elements
+
+ this.add.text(350, 130, "toy forest ->", {
+    fontFamily: "christmaspix",
+    fontSize: "20px",
+    color: "#fff3da",
+}).setScrollFactor(0) // stays fixed on screen
+.setDepth(100);   // Make sure it's above other elements
+
     // this.time.addEvent({
     //   delay:120,
     //   callback: endSceneFunction,
     //   callbackScope: this,
     //   loop: false,
     // });
-
-     // turn on loop, adjust the volume
-     window.bgMusic = null;
-     if (!window.bgMusic) {
-     window.bgMusic = this.sound.add("sugarplum", { loop: true, volume: 1 });
-     window.bgMusic.play();
-
 
     let key1Down = this.input.keyboard.addKey(49);
     let key2Down = this.input.keyboard.addKey(50);
@@ -187,44 +193,9 @@ class introScene extends Phaser.Scene {
     // Prevent black area of edge of the map
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    this.SIGN1 = map.findObject("signboardLayer", (obj) => obj.name === "sign1");
-    this.SIGN2 = map.findObject("signboardLayer", (obj) => obj.name === "sign2");
-
-    this.popUp1Area = new Phaser.Geom.Rectangle(
-      this.SIGN1.x,
-      this.SIGN1.y,
-      this.SIGN1.width,
-      this.SIGN1.height
-    );
-
-    this.dialogText = this.add
-    .text(0, 0, "", { 
-    fontFamily: "christmaspix",
-    fontSize: "16px",
-    fill: "#fff9e6ff", 
-    stroke: '#352f0aff', 
-    strokeThickness: 5 })
-    .setOrigin(0.5)  // Center the text
-    .setDepth(100)   // Make sure it's above other elements
-    .setVisible(false) // Hide it initially
-
-    this.popUp2Area = new Phaser.Geom.Rectangle(
-      this.SIGN2.x,
-      this.SIGN2.y,
-      this.SIGN2.width,
-      this.SIGN2.height
-    );
-
-    this.dialogText = this.add
-    .text(0, 0, "", { 
-    fontFamily: "christmaspix",
-    fontSize: "17px",
-    fill: "#fff9e6ff", 
-    stroke: '#352f0aff', 
-    strokeThickness: 4 })
-    .setOrigin(0.5)  // Center the text
-    .setDepth(100)   // Make sure it's above other elements
-    .setVisible(false) // Hide it initially
+    this.add.image(455, 150, "signImg").setScale(1)
+    .setScrollFactor(0); 
+  
 
     // Add main player here with physics.add.sprite
 
@@ -243,7 +214,7 @@ class introScene extends Phaser.Scene {
 
     // camera follow player
     //this.cameras.main.startFollow(this.player);
-  }} /////////////////// end of create //////////////////////////////
+  } /////////////////// end of create //////////////////////////////
 
   update() {
     if (this.cursors.left.isDown) {
@@ -280,29 +251,7 @@ class introScene extends Phaser.Scene {
       console.log("Go to giftroomScene");
       this.scene.start ("giftroomScene")
     }
-
-    this.dialogText.setVisible(false);
-
-    // Now handle dialog text display
-    if (this.popUp1Area.contains(this.player.x, this.player.y + 10)) {
-      this.dialogText.setText("STEP 1: COLLECT TOYS IN THE TOY FOREST-->");
-      this.dialogText.setVisible(true);
-    } 
-    if (this.popUp2Area.contains(this.player.x, this.player.y + 10)) {
-      this.dialogText.setText("<--STEP 2: GO TO THE WORKSHOP!");
-      this.dialogText.setVisible(true);
-    }
-
-    // Update the text position to be above the player
-    if (this.dialogText.visible) {
-      this.dialogText.x = this.player.x;
-      this.dialogText.y = this.player.y - 40; // 40 pixels above the player
-    }
   } /////////////////// end of update //////////////////////////////'
-
-  init(data) {
-    this.playerPos = data.playerPos;
-  }
 
   // Function to jump to room1
   toyforestScene(player, tile) {
